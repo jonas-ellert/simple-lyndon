@@ -5,7 +5,7 @@
 #include <random>
 #include <string>
 #include <vector>
-#include "lyndonminimal.hpp"
+#include "lyndon.hpp"
 
 void verify(char const *text,  // the input text
             int *nss,          // next smaller suffixes (nss)
@@ -19,7 +19,7 @@ void verify(char const *text,  // the input text
     std::cout << std::endl;
   }
 
-  int rate = std::max(n / 80, 1);
+  int rate = std::max(n / 10, 1);
 
   auto lce = [&](int i, int j) {
     int lce = 0;
@@ -28,7 +28,8 @@ void verify(char const *text,  // the input text
   };
 
   for (int i = 0; i < n; ++i) {
-    if (i % rate == 0) std::cout << "." << std::flush;
+    if ((n - i - 1) % rate == 0) 
+      std::cout << 100 - 10 * ((n - i - 1) / rate) << "% "  << std::flush;
 
     // check pss. we already verified pss[i'] and plce[i'] for i' < i such that
     // we can use these values for verification of pss[i] and plce[i]
@@ -63,7 +64,8 @@ void verify(char const *text,  // the input text
   std::cout << std::endl;
 
   for (int i = n - 1; i >= 0; --i) {
-    if (i % rate == 0) std::cout << "." << std::flush;
+     if (i % rate == 0) 
+       std::cout << 100 - (10 * (i / rate)) << "% "  << std::flush;
 
     // check nss. we already verified nss[i'] and nlce[i'] for i' > i such that
     // we can use these values for verification of nss[i] and nlce[i]
@@ -76,6 +78,7 @@ void verify(char const *text,  // the input text
       if (j + l >= n || text[i + l] > text[j + l]) {
         std::cout << "nss[" << i << "]=" << j << ", but algorithm claims "
                   << "nss[" << i << "]=" << nss[j] << std::endl;
+        std::abort();
       }
     }
 
@@ -84,6 +87,7 @@ void verify(char const *text,  // the input text
       if (ns + l < n && text[i + l] < text[ns + l]) {
         std::cout << "nss[" << i << "]>" << ns << ", but algorithm claims "
                   << "nss[" << i << "]=" << ns << std::endl;
+        std::abort();
       }
 
       if (l != nl) {
@@ -108,8 +112,13 @@ int main(int argc, char *argv[]) {
   static std::uniform_int_distribution<uint8_t> d(97, 98);
 
   std::string string;
-  uint64_t const max_size =
-      (argc == 3) ? std::stoll(argv[2]) : std::numeric_limits<uint64_t>::max();
+  uint64_t max_size = (argc == 3) ? 
+    std::stoll(argv[2]) : std::numeric_limits<uint64_t>::max();
+    
+  if (max_size >= std::numeric_limits<int>::max()) {
+    max_size = std::numeric_limits<int>::max() - 1;
+    std::cerr << "Input truncated to length " << max_size << "." << std::endl;
+  }
 
   std::string file = argv[1];
 
@@ -131,7 +140,7 @@ int main(int argc, char *argv[]) {
     std::cout << "String loaded from file:\n" << file << std::endl;
   }
 
-  int n = string.size();
+  int n = string.size();  
   std::cout << "n = " << n << std::endl;
   if (n <= 80) {
     for (int i = 0; i < n; i++) std::cout << string[i];
